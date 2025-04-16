@@ -7,6 +7,31 @@ st.set_page_config(page_title="Gersh Agent Revenue", layout="wide")
 # Connect to your database
 conn = sqlite3.connect("bookings_final.db")
 
+# --- Global Summary (All Agents) ---
+st.title("📈 Firmwide Bookings Overview")
+
+# Revenue by year
+yearly_rev = pd.read_sql("""
+    SELECT Year, SUM(GrossCommission) AS Revenue
+    FROM bookings_final
+    GROUP BY Year
+    ORDER BY Year
+""", conn)
+st.subheader("📅 Revenue by Year")
+st.dataframe(yearly_rev)
+st.bar_chart(yearly_rev.set_index("Year"))
+
+# Revenue by quarter
+quarterly_rev = pd.read_sql("""
+    SELECT YearAndQuarter, SUM(GrossCommission) AS Revenue
+    FROM bookings_final
+    GROUP BY YearAndQuarter
+    ORDER BY YearAndQuarter
+""", conn)
+st.subheader("🗓️ Revenue by Quarter")
+st.dataframe(quarterly_rev)
+st.bar_chart(quarterly_rev.set_index("YearAndQuarter"))
+
 # Get agent list (trimmed)
 agents = pd.read_sql("""
     SELECT DISTINCT TRIM(AgentName) AS AgentName
