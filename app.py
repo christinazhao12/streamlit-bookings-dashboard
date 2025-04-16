@@ -18,16 +18,17 @@ agent_selected = st.sidebar.selectbox("Select Agent", agents["AgentName"])
 agent_selected_clean = agent_selected.strip()
 
 # Filter full data for selected agent
-agent_data = pd.read_sql("""
+query = f"""
     SELECT YearAndQuarter, Year, SUM(GrossCommission) AS Revenue
     FROM bookings_final
-    WHERE TRIM(AgentName) = ?
+    WHERE TRIM(AgentName) = ? AND Year IN ({','.join(['?']*len(years))})
     GROUP BY YearAndQuarter, Year
-    ORDER BY YearAndQuarter
-""", conn, params=(agent_selected_clean,))
+    ORDER BY Year, YearAndQuarter
+"""
+agent_data = pd.read_sql(query, conn, params=(agent_selected_clean, *years))
 
 # Format summary table
-year = st.sidebar.selectbox("Select Year", sorted(agent_data["Year"].unique(), reverse=True))
+years = st.sidebar.multiselect("Select Year(s)", sorted(agent_data["Year"].unique(), reverse=True), default=2024)
 
 # Filter data by year
 year_data = agent_data[agent_data["Year"] == year]
